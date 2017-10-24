@@ -1,15 +1,11 @@
 module Lang
   class Runtime
-    def initialize(commands : Array(Command), filename : String)
-      @commands = commands
+    def initialize(program : Program, filename : String)
+      @program = program
     end
 
     def run
-      @commands.each do |command|
-        if command.command == "print"
-          puts command.arguments[0].value
-        end
-      end
+      puts @program.inspect
     end
   end
 end

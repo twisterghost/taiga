@@ -36,7 +36,6 @@ module Lang
       line_number = 0
       @content.each_line do |line|
         line = line.strip
-
         parts = coerce_line_to_parts(line)
 
         if parts.size > 0
@@ -61,6 +60,9 @@ module Lang
     end
 
     def coerce_line_to_parts(line : String)
+      if line.size == 0
+        return [] of String
+      end
       raw = line.split(" ")
       parts = [] of String
       parsing_string = false
@@ -70,11 +72,13 @@ module Lang
         raw_part = raw[0]
         if raw_part[0] == '"'
           parsing_string = true
-          working_part += raw.shift
+          working_part += raw.shift + " "
         elsif raw_part[-1] == '"'
           parsing_string = false
           working_part += raw.shift
           parts.push(working_part)
+        elsif parsing_string
+          working_part += raw.shift + " "
         else
           parts.push(raw.shift)
         end
