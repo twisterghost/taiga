@@ -1,0 +1,13 @@
+name: lang
+version: 0.1.0
+
+authors:
+  - Michael Barrett <twisterghost@gmail.com>
+
+targets:
+  lang:
+    main: src/lang.cr
+
+crystal: 0.23.1
+
+license: MIT
