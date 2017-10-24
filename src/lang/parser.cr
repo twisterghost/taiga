@@ -1,12 +1,18 @@
 module Lang
 
+  alias VariableValue = String | Float64 | Bool
+
   class Literal
     property type
-    property value
+    property value : VariableValue
 
-    def initialize(type : Symbol, value : String | Float64)
+    def initialize(type : Symbol, value : VariableValue)
       @type = type
       @value = value
+
+      if @type == :string
+        @value = @value.to_s[1...-1]
+      end
     end
 
     def inspect
@@ -15,14 +21,14 @@ module Lang
   end
 
   class Variable
-    property value
+    property name
 
-    def initialize(value : String)
-      @value = value
+    def initialize(name : String)
+      @name = name
     end
 
     def inspect
-      "var:" + @value
+      "var:" + @name
     end
   end
 

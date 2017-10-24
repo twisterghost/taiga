@@ -36,7 +36,7 @@ module Lang
       line_number = 0
       @content.each_line do |line|
         line = line.strip
-        parts = coerce_line_to_parts(line)
+        parts = coerce_line_to_parts(line, line_number)
 
         if parts.size > 0
           ast.add_node(ASTNode.new(:command, parts.shift))
@@ -59,7 +59,7 @@ module Lang
       ast
     end
 
-    def coerce_line_to_parts(line : String)
+    def coerce_line_to_parts(line : String, line_number : Int)
       if line.size == 0
         return [] of String
       end
@@ -71,8 +71,12 @@ module Lang
       while raw.size > 0
         raw_part = raw[0]
         if raw_part[0] == '"'
-          parsing_string = true
-          working_part += raw.shift + " "
+          if raw_part[-1] == '"'
+            parts.push(raw.shift)
+          else
+            parsing_string = true
+            working_part += raw.shift + " "
+          end
         elsif raw_part[-1] == '"'
           parsing_string = false
           working_part += raw.shift
@@ -85,7 +89,7 @@ module Lang
       end
 
       if parsing_string
-        raise Exception.new("Lexing error: Unterminated string")
+        raise Exception.new("Lexing error: Unterminated string on line " + line_number.to_s)
       end
 
       parts
