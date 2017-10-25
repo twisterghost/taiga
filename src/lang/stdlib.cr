@@ -1,20 +1,35 @@
 module StdLib
-  def self.print(value : Lang::Value | Nil)
-    if value.nil?
-      puts
-    else
-      puts value.value.to_s
+
+  def self.resolve(command : String, args : Lang::Arguments)
+    case command
+    when "print"
+      return self.print(args)
+    when "add"
+      return Math.add(args)
     end
+    raise Exception.new("Runtime error: No such command '" + command + "'.");
+  end
+
+  def self.print(args : Lang::Arguments)
+    str = ""
+    args.values.each do |arg|
+      str += arg.value.to_s
+    end
+    puts str
     return Lang::ValBool.new(:bool, 1)
   end
 
   module Math
-    def self.add(valueA : Lang::Value, valueB : Lang::Value)
-      if valueA.is_a?(Lang::ValNumber) && valueB.is_a?(Lang::ValNumber)
-        res = valueA.value + valueB.value
-        return Lang::ValNumber.new(:number, res)
+    def self.add(args : Lang::Arguments)
+      sum = 0.0
+      args.values.each do |arg|
+        if arg.is_a?(Lang::ValNumber)
+          sum += arg.value
+        else
+          raise Exception.new("Runtime error: Cannot add non-numbers")
+        end
       end
-      raise Exception.new("Runtime error: Cannot add non-numbers")
+      return Lang::ValNumber.new(:number, sum)
     end
   end
 end

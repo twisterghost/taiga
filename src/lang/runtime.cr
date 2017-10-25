@@ -54,6 +54,7 @@ module Lang
     def initialize(rout : Routine, context : Runtime)
       @rout = rout
       @variables = {} of String => Value
+      @variables["_"] = ValBool.new(:bool, 1)
       @context = context
     end
 
@@ -61,6 +62,7 @@ module Lang
       run_command = command.command
       raw_arguments = command.arguments
 
+      # Constant definition
       if run_command == "let"
         first_arg = raw_arguments[0]
         if first_arg.is_a?(Token)
@@ -74,23 +76,18 @@ module Lang
         end
       end
 
+      # Parse args and send to stdlib
       arguments = Arguments.new(raw_arguments, self)
-      case run_command
-      when "print"
-        save_res(StdLib.print(arguments.values[0]))
-      when "add"
-        save_res(StdLib::Math.add(arguments.values[0], arguments.values[1]))
-      else
-        # Check if the context has this command as a routine
-        if @context.program.routines.has_key?(run_command)
-          subrout = @context.program.routines[run_command]
-          runner = RoutRunner.new(subrout, @context)
-          save_res(runner.run)
-        else
-          raise Exception.new("Runtime error: No such routine '" + run_command + "'.")
-        end
 
+      # Check if the context has this command as a routine
+      if @context.program.routines.has_key?(run_command)
+        subrout = @context.program.routines[run_command]
+        runner = RoutRunner.new(subrout, @context)
+        save_res(runner.run)
+      else
+        save_res(StdLib.resolve(command.command, arguments))
       end
+
     end
 
     def save_res(res : Value)
