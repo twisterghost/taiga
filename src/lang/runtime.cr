@@ -25,6 +25,20 @@ module Lang
   end
 
   class ValBool < Value
+    def initialize(type : Symbol, value : VariableValue)
+      @type = type
+      @value = value
+    end
+
+    def initialize(type : Symbol, value : Bool)
+      @type = type
+      if value
+        @value = 1
+      else
+        @value = 0
+      end
+    end
+
     def value
       if @value == 1
         return true
@@ -73,8 +87,8 @@ module Lang
         end
 
         evaluate(command)
-      else
-        raise Exception.new("Runtime error: Cannot execute non-token")
+      elsif potential_command.is_a?(Value)
+        save_res(potential_command)
       end
     end
 
@@ -129,7 +143,6 @@ module Lang
         end
         return
       end
-
 
       # Parse args and send to stdlib
       arguments = Arguments.new(raw_arguments, self)
