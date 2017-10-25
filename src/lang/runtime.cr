@@ -2,18 +2,33 @@ require "./stdlib"
 include StdLib
 
 module Lang
+  abstract class Value
+    property type : Symbol
+    property value : VariableValue
 
-  class Variable
+    def initialize(type, value)
+      @type = type
+      @value = value
+    end
+  end
+
+  class ValString < Value
+  end
+
+  class ValNumber < Value
+  end
+
+  class ValBool < Value
   end
 
   class RoutRunner
-    property variables : Hash(String, Literal)
+    property variables : Hash(String, Value)
     property rout : Routine
     property context : Runtime
 
     def initialize(rout : Routine, context : Runtime)
       @rout = rout
-      @variables = {} of String => Literal
+      @variables = {} of String => Value
       @context = context
     end
 
@@ -24,7 +39,7 @@ module Lang
       case run_command
       when "print"
         StdLib.print(value_of(arguments[0]))
-        return Literal.new(:bool, true)
+        return ValBool.new(:bool, 1)
       when "let"
         first_arg = arguments[0]
         if first_arg.is_a?(Token)
@@ -52,7 +67,15 @@ module Lang
 
     def value_of(var_or_val : Token | Literal)
       if var_or_val.is_a?(Literal)
-        return var_or_val
+        case var_or_val.type
+        when :string
+          return ValString.new(:string, var_or_val.value.to_s)
+        when :number
+          return ValNumber.new(:number, var_or_val.value.to_f64)
+        when :bool
+          return ValBool.new(:bool, var_or_val.value.to_i)
+        end
+        raise Exception.new("Runtime error: Unknown literal type")
       else
         if @variables.has_key?(var_or_val.name)
           return @variables[var_or_val.name]
@@ -63,7 +86,7 @@ module Lang
     end
 
     def run
-      res : Literal = Literal.new(:bool, true)
+      res : Value = ValBool.new(:bool, 1)
       @rout.commands.each do |command|
         res = evaluate(command)
       end

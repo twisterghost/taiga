@@ -1,6 +1,6 @@
 module Lang
 
-  alias VariableValue = String | Float64 | Bool
+  alias VariableValue = String | Float64 | Int32
 
   class Literal
     property type
