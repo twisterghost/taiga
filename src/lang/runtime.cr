@@ -110,6 +110,26 @@ module Lang
         end
       end
 
+      if run_command == "elif"
+        checkval = value_of(raw_arguments[0])
+        if checkval.is_a?(ValBool)
+          if !@lastif && checkval.value
+            @lastif = true
+            evaluate_dynamic(raw_arguments[1..-1])
+          end
+          return
+        else
+          raise Exception.new("Runtime error: Cannot if on non-bool")
+        end
+      end
+
+      if run_command == "else"
+        if !@lastif
+          evaluate_dynamic(raw_arguments[0..-1])
+        end
+        return
+      end
+
 
       # Parse args and send to stdlib
       arguments = Arguments.new(raw_arguments, self)
