@@ -13,13 +13,38 @@ module Lang
   end
 
   class ValString < Value
+    def value
+      @value.to_s
+    end
   end
 
   class ValNumber < Value
+    def value
+      @value.to_f64
+    end
   end
 
   class ValBool < Value
+    def value
+      if @value == 1
+        return true
+      else
+        return false
+      end
+    end
   end
+
+  class Arguments
+    property values : Array(Value)
+
+    def initialize(raw : Array(Literal | Token), context : RoutRunner)
+      @values = [] of Value
+      raw.each do |arg|
+        @values.push(context.value_of(arg))
+      end
+    end
+  end
+
 
   class RoutRunner
     property variables : Hash(String, Value)
@@ -34,35 +59,42 @@ module Lang
 
     def evaluate(command : Command)
       run_command = command.command
-      arguments = command.arguments
+      raw_arguments = command.arguments
 
-      case run_command
-      when "print"
-        StdLib.print(value_of(arguments[0]))
-        return ValBool.new(:bool, 1)
-      when "let"
-        first_arg = arguments[0]
+      if run_command == "let"
+        first_arg = raw_arguments[0]
         if first_arg.is_a?(Token)
           variable_name = first_arg.name
-          value = value_of(arguments[1])
+          value = value_of(raw_arguments[1])
           @variables[variable_name] = value
-          return value
+          save_res(value)
+          return
         else
           raise Exception.new("Runtime error: Invalid variable name")
         end
+      end
+
+      arguments = Arguments.new(raw_arguments, self)
+      case run_command
+      when "print"
+        save_res(StdLib.print(arguments.values[0]))
+      when "add"
+        save_res(StdLib::Math.add(arguments.values[0], arguments.values[1]))
       else
         # Check if the context has this command as a routine
         if @context.program.routines.has_key?(run_command)
           subrout = @context.program.routines[run_command]
           runner = RoutRunner.new(subrout, @context)
-          res = runner.run
-          @variables["_"] = res
-          return res
+          save_res(runner.run)
         else
           raise Exception.new("Runtime error: No such routine '" + run_command + "'.")
         end
 
       end
+    end
+
+    def save_res(res : Value)
+      @variables["_"] = res
     end
 
     def value_of(var_or_val : Token | Literal)
@@ -86,11 +118,10 @@ module Lang
     end
 
     def run
-      res : Value = ValBool.new(:bool, 1)
       @rout.commands.each do |command|
-        res = evaluate(command)
+        evaluate(command)
       end
-      res
+      @variables["_"]
     end
 
   end
