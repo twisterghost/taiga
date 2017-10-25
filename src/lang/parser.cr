@@ -20,7 +20,7 @@ module Lang
     end
   end
 
-  class Variable
+  class Token
     property name
 
     def initialize(name : String)
@@ -28,7 +28,7 @@ module Lang
     end
 
     def inspect
-      "var:" + @name
+      "token:" + @name
     end
   end
 
@@ -67,19 +67,19 @@ module Lang
 
   class Command
     property command : String
-    property arguments : Array(Literal | Variable)
+    property arguments : Array(Literal | Token)
 
     def initialize(command : String)
       @command = command
-      @arguments = [] of (Literal | Variable)
+      @arguments = [] of (Literal | Token)
     end
 
     def initialize()
       @command = ""
-      @arguments = [] of (Literal | Variable)
+      @arguments = [] of (Literal | Token)
     end
 
-    def add_argument(node : Variable | Literal)
+    def add_argument(node : Literal | Token)
       @arguments.push(node)
     end
 
@@ -138,7 +138,7 @@ module Lang
           if is_new_routine
             current_routine.arguments.push(node.value.to_s)
           else
-            current_command.add_argument(Variable.new(node.value.to_s))
+            current_command.add_argument(Token.new(node.value.to_s))
           end
         when :newline, :eof
           if is_new_routine

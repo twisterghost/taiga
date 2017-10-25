@@ -3,6 +3,9 @@ include StdLib
 
 module Lang
 
+  class Variable
+  end
+
   class RoutRunner
     property variables : Hash(String, Literal)
     property rout : Routine
@@ -24,7 +27,7 @@ module Lang
         return Literal.new(:bool, true)
       when "let"
         first_arg = arguments[0]
-        if first_arg.is_a?(Variable)
+        if first_arg.is_a?(Token)
           variable_name = first_arg.name
           value = value_of(arguments[1])
           @variables[variable_name] = value
@@ -47,7 +50,7 @@ module Lang
       end
     end
 
-    def value_of(var_or_val : Variable | Literal)
+    def value_of(var_or_val : Token | Literal)
       if var_or_val.is_a?(Literal)
         return var_or_val
       else
