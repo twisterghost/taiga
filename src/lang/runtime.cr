@@ -56,6 +56,26 @@ module Lang
       @variables = {} of String => Value
       @variables["_"] = ValBool.new(:bool, 1)
       @context = context
+      @lastif = false
+    end
+
+    def evaluate_dynamic(parts : Array(Literal | Token))
+      if parts.size == 0
+        raise Exception.new("Runtime error: Cannot execute nothing")
+      end
+
+      potential_command = parts[0]
+      if potential_command.is_a?(Token)
+        command = Command.new(potential_command.name)
+
+        if parts.size > 1
+          command.arguments = parts[1..-1]
+        end
+
+        evaluate(command)
+      else
+        raise Exception.new("Runtime error: Cannot execute non-token")
+      end
     end
 
     def evaluate(command : Command)
@@ -76,6 +96,21 @@ module Lang
         end
       end
 
+      # Flow control
+      if run_command == "if"
+        checkval = value_of(raw_arguments[0])
+        if checkval.is_a?(ValBool)
+          @lastif = checkval.value
+          if @lastif
+            evaluate_dynamic(raw_arguments[1..-1])
+          end
+          return
+        else
+          raise Exception.new("Runtime error: Cannot if on non-bool")
+        end
+      end
+
+
       # Parse args and send to stdlib
       arguments = Arguments.new(raw_arguments, self)
 
@@ -83,7 +118,7 @@ module Lang
       if @context.program.routines.has_key?(run_command)
         subrout = @context.program.routines[run_command]
         runner = RoutRunner.new(subrout, @context)
-        save_res(runner.run)
+        save_res(runner.run(arguments.values))
       else
         save_res(StdLib.resolve(command.command, arguments))
       end
@@ -114,7 +149,12 @@ module Lang
       end
     end
 
-    def run
+    def run(arguments : Array(Value))
+      # Populate named arguments
+      arguments.each_with_index do |arg, i|
+        @variables[@rout.arguments[i]] = arg
+      end
+
       @rout.commands.each do |command|
         evaluate(command)
       end
@@ -132,7 +172,7 @@ module Lang
 
     def run
       main_runner = RoutRunner.new(@program.main, self)
-      main_runner.run
+      main_runner.run([] of Value)
     end
   end
 end

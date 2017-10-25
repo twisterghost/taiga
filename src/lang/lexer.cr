@@ -4,7 +4,7 @@ module Lang
     property type
     property value
 
-    def initialize(type : Symbol, value : String | Float64)
+    def initialize(type : Symbol, value : String | Float64 | Int32)
       @type = type
       @value = value
     end
@@ -49,6 +49,12 @@ module Lang
               ast.add_node(ASTNode.new(type, value.to_f))
             when :string, :token
               ast.add_node(ASTNode.new(type, value))
+            when :bool
+              if value == "true"
+                ast.add_node(ASTNode.new(type, 1))
+              else
+                ast.add_node(ASTNode.new(type, 0))
+              end
             end
           end
         end
@@ -97,7 +103,8 @@ module Lang
 
     def determine_type(value : String)
       return :string if value[0] == '"'
-      return :number if value.match(/[0-9\.]+/)
+      return :number if value.match(/^[0-9\.]+$/)
+      return :bool if value == "true" || value == "false"
       return :token
     end
 

@@ -129,7 +129,7 @@ module Lang
           else
             current_command.command = node.value.to_s
           end
-        when :number, :string
+        when :number, :string, :bool
           if is_new_routine
             raise Exception.new("Parsing error: Unexpected literal")
           end
