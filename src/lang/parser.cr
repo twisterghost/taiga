@@ -1,12 +1,10 @@
 module Lang
 
-  alias VariableValue = String | Float64 | Int32
-
   class Literal
     property type
-    property value : VariableValue
+    property value : PrimitiveValue
 
-    def initialize(type : Symbol, value : VariableValue)
+    def initialize(type : Symbol, value : PrimitiveValue)
       @type = type
       @value = value
 

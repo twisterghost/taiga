@@ -14,13 +14,20 @@ module Lang
 
   class ValString < Value
     def value
-      @value.to_s
+      if @value.is_a?(String)
+        return @value
+      end
+      raise Exception.new("Runtime error: Internal string rep isnt a string")
     end
   end
 
   class ValNumber < Value
     def value
-      @value.to_f64
+      val = @value
+      if val.is_a?(Float64)
+        return val.to_f64
+      end
+      raise Exception.new("Runtime error: Internal number rep isnt a number")
     end
   end
 
@@ -51,6 +58,13 @@ module Lang
   class ValCommand < Value
     def value
       @value.to_s
+    end
+  end
+
+  class ValHash < Value
+    def initialize(type)
+      @type = type
+      @value = {} of String => VariableValue
     end
   end
 

@@ -10,6 +10,10 @@ module StdLib
       return Math.sub(args)
     when "eq"
       return self.eq(args)
+    when "hash.new"
+      return Hash.create()
+    when "hash.set"
+      return Hash.set(args)
     end
     raise Exception.new("Runtime error: No such command '" + command + "'.");
   end
@@ -37,7 +41,7 @@ module StdLib
 
   module Math
     def self.add(args : Lang::Arguments)
-      sum = 0.0
+      sum = 0.0.to_f64
       args.values.each do |arg|
         if arg.is_a?(Lang::ValNumber)
           sum += arg.value
@@ -68,6 +72,28 @@ module StdLib
         end
       end
       return Lang::ValNumber.new(:number, sum)
+    end
+  end
+
+  module Hash
+    def self.create
+      return Lang::ValHash.new(:hash)
+    end
+
+    def self.set(args : Lang::Arguments)
+      if args.values.size < 3
+        raise Exception.new("Runtime error: Hash.Set must have 3 arguments")
+      end
+
+      hash = args.values[0]
+      key = args.values[1]
+      val = args.values[2]
+      puts args.values
+      if hash.is_a?(Lang::ValHash) && key.is_a?(Lang::ValString) && val.is_a?(Lang::Value)
+        hash.value[key.value] = val.value
+        return hash
+      end
+      raise Exception.new("Runtime error: Incorrect arguments for hash.set")
     end
   end
 end
