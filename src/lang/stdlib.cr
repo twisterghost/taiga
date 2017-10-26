@@ -10,12 +10,14 @@ module StdLib
       return Math.sub(args)
     when "eq"
       return self.eq(args)
-    when "hash.new"
+    when "hash"
       return HashLib.create()
-    when "hash.set"
+    when "hashSet"
       return HashLib.set(args)
-    when "hash.get"
+    when "hashGet"
       return HashLib.get(args)
+    when "hashHas"
+      return HashLib.has(args)
     end
     raise Exception.new("Runtime error: No such command '" + command + "'.");
   end
@@ -84,7 +86,7 @@ module StdLib
 
     def self.set(args : Lang::Arguments)
       if args.values.size < 3
-        raise Exception.new("Runtime error: Hash.Set must have 3 arguments")
+        raise Exception.new("Runtime error: hashSet must have 3 arguments")
       end
 
       hash = args.values[0]
@@ -104,7 +106,7 @@ module StdLib
 
     def self.get(args : Lang::Arguments)
       if args.values.size < 2
-        raise Exception.new("Runtime error: Hash.Set must have 3 arguments")
+        raise Exception.new("Runtime error: hashGet must have 2 arguments")
       end
 
       hash = args.values[0]
@@ -113,7 +115,33 @@ module StdLib
         raw_hash = hash.value
         raw_key = key.value
         if raw_hash.is_a?(Hash(String, Lang::Value)) && raw_key.is_a?(String)
-          return raw_hash[raw_key]
+          if raw_hash.has_key?(raw_key)
+            return raw_hash[raw_key]
+          else
+            raise Exception.new("Runtime error: No such key '" + raw_key + "' in hash")
+          end
+        end
+        raise Exception.new("Runtime error: Incorrect argument values for hash.get")
+      end
+      raise Exception.new("Runtime error: Incorrect arguments for hash.get")
+    end
+
+    def self.has(args : Lang::Arguments)
+      if args.values.size < 2
+        raise Exception.new("Runtime error: hashHas must have 2 arguments")
+      end
+
+      hash = args.values[0]
+      key = args.values[1]
+      if hash.is_a?(Lang::ValHash) && key.is_a?(Lang::ValString)
+        raw_hash = hash.value
+        raw_key = key.value
+        if raw_hash.is_a?(Hash(String, Lang::Value)) && raw_key.is_a?(String)
+          if raw_hash.has_key?(raw_key)
+            return Lang::ValBool.new(:bool, 1)
+          else
+            return Lang::ValBool.new(:bool, 0)
+          end
         end
         raise Exception.new("Runtime error: Incorrect argument values for hash.get")
       end

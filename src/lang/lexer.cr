@@ -43,7 +43,7 @@ module Lang
 
           while parts.size > 0
             value = parts.shift
-            type = determine_type(value)
+            type = Lexer.determine_type(value)
             case type
             when :number
               ast.add_node(ASTNode.new(type, value.to_f))
@@ -105,7 +105,7 @@ module Lang
       parts
     end
 
-    def determine_type(value : String)
+    def self.determine_type(value : String)
       return :string if value[0] == '"'
       return :number if value.match(/^[0-9\.]+$/)
       return :bool if value == "true" || value == "false"

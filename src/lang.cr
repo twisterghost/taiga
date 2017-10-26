@@ -12,7 +12,14 @@ module Lang
     program = parser.parse
 
     main_runner = RoutRunner.new(program.main, program)
-    main_runner.run([] of Value)
+    runner_args = [] of Value
+
+    ARGV[1..-1].each do |arg|
+      string_arg = ValString.new(:string, arg)
+      runner_args.push(string_arg)
+    end
+
+    main_runner.run(runner_args)
   rescue ex
     message = ex.message
     if message.nil?

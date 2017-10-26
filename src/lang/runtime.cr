@@ -148,8 +148,8 @@ module Lang
         end
 
         evaluate(command)
-      elsif potential_command.is_a?(Value)
-        save_res(potential_command)
+      elsif potential_command.is_a?(Literal)
+        save_res(value_of(potential_command))
       end
     end
 
@@ -313,7 +313,9 @@ module Lang
     def run(arguments : Array(Value))
       # Populate named arguments
       arguments.each_with_index do |arg, i|
-        @variables[@rout.arguments[i]] = arg
+        if i < @rout.arguments.size
+          @variables[@rout.arguments[i]] = arg
+        end
       end
 
       @rout.commands.each do |command|
