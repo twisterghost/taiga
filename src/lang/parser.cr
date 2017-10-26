@@ -33,10 +33,12 @@ module Lang
   class Program
     property routines : Hash(String, Routine)
     property main : Routine
+    property imports : Hash(String, Program)
 
     def initialize(main : Routine)
       @main = main
       @routines = {"main" => main}
+      @imports = {} of String => Program
     end
 
     def inspect
@@ -92,15 +94,20 @@ module Lang
     def initialize(ast : AST, filename : String)
       @ast = ast
       @filename = filename
+      @main = Routine.new("main")
+      @program = Program.new(@main)
+    end
+
+    def handle_import(command : Command)
+      puts command.arguments
     end
 
     def parse
-      main = Routine.new("main")
-      program = Program.new(main)
       i = 0
       current_command = Command.new
-      current_routine = main
+      current_routine = @main
       is_new_routine = false
+      is_import = false
 
       while i < @ast.nodes.size
         node = @ast.nodes[i]
@@ -109,7 +116,7 @@ module Lang
         when :command
           case node.value.to_s
           when "rout"
-            if current_routine != main
+            if current_routine != @main
               raise Exception.new("Paring error: Unexpected routine definition")
             end
             i += 1
@@ -122,8 +129,10 @@ module Lang
             current_routine = Routine.new(routine_name)
             is_new_routine = true
           when "endrout"
-            program.routines[current_routine.name] = current_routine
-            current_routine = main
+            @program.routines[current_routine.name] = current_routine
+            current_routine = @main
+          when "import"
+            is_import = true
           else
             current_command.command = node.value.to_s
           end
@@ -141,6 +150,9 @@ module Lang
         when :newline, :eof
           if is_new_routine
             is_new_routine = false
+          elsif is_import
+            handle_import(current_command)
+            is_import = false
           else
             if current_command.command.size != 0
               current_routine.commands.push(current_command)
@@ -150,7 +162,7 @@ module Lang
         end
         i += 1
       end
-      program
+      @program
     end
   end
 end

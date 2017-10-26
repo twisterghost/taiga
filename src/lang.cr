@@ -2,7 +2,7 @@ require "file"
 require "./lang/*"
 
 module Lang
-  file_path = ARGV[0]
+  file_path = File.expand_path(ARGV[0])
   file_content = File.read(file_path)
   begin
     lexer = Lexer.new(file_content, file_path)
