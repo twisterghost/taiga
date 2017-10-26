@@ -48,6 +48,12 @@ module Lang
     end
   end
 
+  class ValCommand < Value
+    def value
+      @value.to_s
+    end
+  end
+
   class Arguments
     property values : Array(Value)
 
@@ -59,11 +65,11 @@ module Lang
     end
   end
 
-
   class RoutRunner
     property variables : Hash(String, Value)
     property rout : Routine
     property context : Runtime
+    property terminated : Bool
 
     def initialize(rout : Routine, context : Runtime)
       @rout = rout
@@ -71,6 +77,19 @@ module Lang
       @variables["_"] = ValBool.new(:bool, 1)
       @context = context
       @lastif = false
+      @terminated = false
+    end
+
+    def get_var(name : String)
+      if @variables.has_key?(name)
+        return @variables[name]
+      end
+
+      if @context.program.routines.has_key?(name)
+        return ValCommand.new(:command, name)
+      end
+
+      return nil
     end
 
     def evaluate_dynamic(parts : Array(Literal | Token))
@@ -80,7 +99,12 @@ module Lang
 
       potential_command = parts[0]
       if potential_command.is_a?(Token)
-        command = Command.new(potential_command.name)
+        check_command = value_of(potential_command)
+        if check_command.nil?
+          command = Command.new(potential_command.name)
+        else
+          command = Command.new(check_command.value.to_s)
+        end
 
         if parts.size > 1
           command.arguments = parts[1..-1]
@@ -104,6 +128,21 @@ module Lang
           value = value_of(raw_arguments[1])
           @variables[variable_name] = value
           save_res(value)
+          return
+        else
+          raise Exception.new("Runtime error: Invalid variable name")
+        end
+      end
+
+      if run_command == "default"
+        first_arg = raw_arguments[0]
+        if first_arg.is_a?(Token)
+          variable_name = first_arg.name
+          if !@variables.has_key?(variable_name)
+            value = value_of(raw_arguments[1])
+            @variables[variable_name] = value
+            save_res(value)
+          end
           return
         else
           raise Exception.new("Runtime error: Invalid variable name")
@@ -144,8 +183,24 @@ module Lang
         return
       end
 
+      if run_command == "return"
+        @terminated = true
+        if raw_arguments.size > 0
+          save_res(value_of(raw_arguments[0]))
+        end
+        return
+      end
+
       # Parse args and send to stdlib
       arguments = Arguments.new(raw_arguments, self)
+      if (run_command == "_")
+        possible_command = get_var("_")
+        if possible_command.nil?
+          raise Exception.new("Runtime error: Cannot run nonexistent routine")
+        else
+          run_command = possible_command.value.to_s
+        end
+      end
 
       # Check if the context has this command as a routine
       if @context.program.routines.has_key?(run_command)
@@ -153,7 +208,7 @@ module Lang
         runner = RoutRunner.new(subrout, @context)
         save_res(runner.run(arguments.values))
       else
-        save_res(StdLib.resolve(command.command, arguments))
+        save_res(StdLib.resolve(run_command, arguments))
       end
 
     end
@@ -174,10 +229,11 @@ module Lang
         end
         raise Exception.new("Runtime error: Unknown literal type")
       else
-        if @variables.has_key?(var_or_val.name)
-          return @variables[var_or_val.name]
-        else
+        val = get_var(var_or_val.name)
+        if val.nil?
           raise Exception.new("Runtime error: No such variable '" + var_or_val.name + "'.")
+        else
+          return val
         end
       end
     end
@@ -189,6 +245,9 @@ module Lang
       end
 
       @rout.commands.each do |command|
+        if @terminated
+          break
+        end
         evaluate(command)
       end
       @variables["_"]
