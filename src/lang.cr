@@ -11,8 +11,8 @@ module Lang
     parser = Parser.new(ast, file_path)
     program = parser.parse
 
-    runtime = Runtime.new(program, file_path)
-    runtime.run
+    main_runner = RoutRunner.new(program.main, program)
+    main_runner.run([] of Value)
   rescue ex
     message = ex.message
     if message.nil?

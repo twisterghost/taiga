@@ -105,10 +105,10 @@ module Lang
   class RoutRunner
     property variables : Hash(String, Value)
     property rout : Routine
-    property context : Runtime
+    property context : Program
     property terminated : Bool
 
-    def initialize(rout : Routine, context : Runtime)
+    def initialize(rout : Routine, context : Program)
       @rout = rout
       @variables = {} of String => Value
       @variables["_"] = ValBool.new(:bool, 1)
@@ -122,7 +122,7 @@ module Lang
         return @variables[name]
       end
 
-      if @context.program.routines.has_key?(name)
+      if @context.routines.has_key?(name)
         return ValCommand.new(:command, name)
       end
 
@@ -136,7 +136,7 @@ module Lang
 
       potential_command = parts[0]
       if potential_command.is_a?(Token)
-        check_command = value_of(potential_command)
+        check_command = value_of_dangerous(potential_command)
         if check_command.nil?
           command = Command.new(potential_command.name)
         else
@@ -230,8 +230,8 @@ module Lang
 
       # Parse args and send to stdlib
       arguments = Arguments.new(raw_arguments, self)
-      if (run_command == "_")
-        possible_command = get_var("_")
+      if var_exists(run_command)
+        possible_command = get_var(run_command)
         if possible_command.nil?
           raise Exception.new("Runtime error: Cannot run nonexistent routine")
         else
@@ -239,14 +239,37 @@ module Lang
         end
       end
 
+      # If there is a dot, run from that import context
+      if !run_command.index('.').nil?
+        parts = run_command.split('.')
+        if parts.size > 2
+          raise Exception.new("Runtime error: Invalid import access")
+        end
+        import_name = parts[0]
+        import_rout = parts[1]
+        if @context.imports.has_key?(import_name)
+          if @context.imports[import_name].routines.has_key?(import_rout)
+            subrout = @context.imports[import_name].routines[import_rout]
+            runner = RoutRunner.new(subrout, @context.imports[import_name])
+            save_res(runner.run(arguments.values))
+            return
+          else
+            raise Exception.new("Runtime error: No such rout '" + import_rout + "' on '" + import_name)
+          end
+        else
+          raise Exception.new("Runtime error: No such import '" + import_name + "'")
+        end
+      end
+
       # Check if the context has this command as a routine
-      if @context.program.routines.has_key?(run_command)
-        subrout = @context.program.routines[run_command]
+      if @context.routines.has_key?(run_command)
+        subrout = @context.routines[run_command]
         runner = RoutRunner.new(subrout, @context)
         save_res(runner.run(arguments.values))
-      else
-        save_res(StdLib.resolve(run_command, arguments))
+        return
       end
+
+      save_res(StdLib.resolve(run_command, arguments))
 
     end
 
@@ -254,7 +277,24 @@ module Lang
       @variables["_"] = res
     end
 
+    def var_exists(name : String)
+      @variables.has_key?(name)
+    end
+
     def value_of(var_or_val : Token | Literal)
+      val = value_of_dangerous(var_or_val)
+      if val.nil?
+        if var_or_val.is_a?(Token)
+          raise Exception.new("Runtime error: No such variable '" + var_or_val.name + "'.")
+        else
+          raise Exception.new("Runtime error: No such value")
+        end
+      else
+        return val
+      end
+    end
+
+    def value_of_dangerous(var_or_val : Token | Literal)
       if var_or_val.is_a?(Literal)
         case var_or_val.type
         when :string
@@ -266,12 +306,7 @@ module Lang
         end
         raise Exception.new("Runtime error: Unknown literal type")
       else
-        val = get_var(var_or_val.name)
-        if val.nil?
-          raise Exception.new("Runtime error: No such variable '" + var_or_val.name + "'.")
-        else
-          return val
-        end
+        return get_var(var_or_val.name)
       end
     end
 
@@ -290,18 +325,5 @@ module Lang
       @variables["_"]
     end
 
-  end
-
-  class Runtime
-    property program
-
-    def initialize(program : Program, filename : String)
-      @program = program
-    end
-
-    def run
-      main_runner = RoutRunner.new(@program.main, self)
-      main_runner.run([] of Value)
-    end
   end
 end

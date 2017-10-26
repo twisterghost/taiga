@@ -1,3 +1,5 @@
+require "file"
+
 module Lang
 
   class Literal
@@ -98,8 +100,27 @@ module Lang
       @program = Program.new(@main)
     end
 
+    def resolve_path(import_path : String)
+      base_path = File.dirname(@filename)
+      File.expand_path(import_path, base_path)
+    end
+
     def handle_import(command : Command)
-      puts command.arguments
+      import_filename = command.arguments[0]
+      import_token = command.arguments[1]
+      if import_filename.is_a?(Literal) && import_token.is_a?(Token)
+        import_path = resolve_path(import_filename.value.to_s)
+        content = File.read(import_path)
+
+        # Lex, parse and save import
+        import_lexer = Lexer.new(content, import_path)
+        import_ast = import_lexer.lex
+        import_parser = Parser.new(import_ast, import_path)
+        imported_program = import_parser.parse
+        @program.imports[import_token.name.to_s] = imported_program
+      else
+        raise Exception.new("Parsing error: Import must be string and token")
+      end
     end
 
     def parse
