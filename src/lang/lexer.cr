@@ -69,6 +69,10 @@ module Lang
       if line.size == 0
         return [] of String
       end
+
+      if line[0] == '#'
+        return [] of String
+      end
       raw = line.split(" ")
       parts = [] of String
       parsing_string = false
