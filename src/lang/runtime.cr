@@ -10,6 +10,10 @@ module Lang
       @type = type
       @value = value
     end
+
+    def print
+      @value.to_s
+    end
   end
 
   class ValString < Value
@@ -53,6 +57,14 @@ module Lang
         return false
       end
     end
+
+    def print
+      if @value == 1
+        return "true"
+      else
+        return "false"
+      end
+    end
   end
 
   class ValCommand < Value
@@ -64,7 +76,18 @@ module Lang
   class ValHash < Value
     def initialize(type)
       @type = type
-      @value = {} of String => VariableValue
+      @value = {} of String => Value
+    end
+
+    def print
+      str = ""
+      hash_value = @value
+      if hash_value.is_a?(Hash(String, Value))
+        hash_value.each do |key, item|
+          str += key + ": " + item.print + ", "
+        end
+      end
+      str
     end
   end
 
