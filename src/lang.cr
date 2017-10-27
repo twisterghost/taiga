@@ -1,5 +1,5 @@
 require "file"
-require "./lang/*"
+require "./lang/**"
 
 module Lang
   file_path = File.expand_path(ARGV[0])
