@@ -18,7 +18,6 @@ module Lang
       string_arg = ValString.new(:string, arg)
       runner_args.push(string_arg)
     end
-
     main_runner.run(runner_args)
   rescue ex
     message = ex.message
