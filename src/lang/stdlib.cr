@@ -51,37 +51,31 @@ module StdLib
     end
   end
 
-  def self.resolve(command : String, args : Lang::Arguments)
+  macro api(command_api)
     case command
-    when "print"
-      return self.print(args)
-    when "add"
-      return Math.add(args)
-    when "sub"
-      return Math.sub(args)
-    when "eq"
-      return self.eq(args)
-    when "hash"
-      return HashLib.create()
-    when "hashSet"
-      return HashLib.set(args)
-    when "hashGet"
-      return HashLib.get(args)
-    when "hashHas"
-      return HashLib.has(args)
-    when "arr"
-      return ArrayLib.create(args)
-    when "arrGet"
-      return ArrayLib.get(args)
-    when "arrSize"
-      return ArrayLib.size(args)
-    when "arrSet"
-      return ArrayLib.set(args)
-    when "arrPush"
-      return ArrayLib.push(args)
-    when "arrPop"
-      return ArrayLib.pop(args)
+    {% for cmd, func in command_api %}
+    when "{{cmd.id}}"
+      return {{func.id}}(args)
+    {% end %}
     end
+  end
+
+  def self.resolve(command : String, args : Lang::Arguments)
+    api({
+      "print": print,
+      "eq": eq,
+      "add": Math.add,
+      "sub": Math.sub,
+      "hash": HashLib.create,
+      "hashSet": HashLib.set,
+      "hashGet": HashLib.get,
+      "hashHas": HashLib.has,
+      "arr": ArrayLib.create,
+      "arrGet": ArrayLib.get,
+      "arrSize": ArrayLib.size,
+      "arrPush": ArrayLib.push,
+      "arrPop": ArrayLib.pop
+    })
     raise Exception.new("Runtime error: No such command '" + command + "'.");
   end
 
@@ -128,7 +122,7 @@ module StdLib
   end
 
   module HashLib
-    def self.create
+    def self.create(args : Lang::Arguments)
       return Lang::ValHash.new(:hash)
     end
 
