@@ -1,6 +1,6 @@
 module StdLib
 
-  def min_args(args : Lang::Arguments, min_count, name)
+  def require_args(args : Lang::Arguments, min_count, name)
     if args.values.size < min_count
       raise Exception.new(name + " requires at minimum " + min_count.to_s + " arguments.")
     end
@@ -104,33 +104,18 @@ module StdLib
     def self.add(args : Lang::Arguments)
       sum = 0.0.to_f64
       args.values.each do |arg|
-        if arg.is_a?(Lang::ValNumber)
-          sum += arg.value
-        else
-          raise Exception.new("Runtime error: Cannot add non-numbers")
-        end
+        val = require_number(arg)
+        sum += val
       end
       return Lang::ValNumber.new(:number, sum)
     end
 
     def self.sub(args : Lang::Arguments)
-      sum = 0.0
-      if args.values.size == 0
-        raise Exception.new("Runtime error: Cannot sub nothing")
-      end
-
-      first_val = args.values[0]
-      if first_val.is_a?(Lang::ValNumber)
-        sum = first_val.value
-      else
-        raise Exception.new("Runtime error: Cannot sub a non-number")
-      end
+      require_args(args, 2, "sub")
+      sum = require_number(args[0])
       args.values[1..-1].each do |arg|
-        if arg.is_a?(Lang::ValNumber)
-          sum -= arg.value
-        else
-          raise Exception.new("Runtime error: Cannot sub a non-number")
-        end
+        val = require_number(arg)
+        sum -= val
       end
       return Lang::ValNumber.new(:number, sum)
     end
@@ -142,6 +127,7 @@ module StdLib
     end
 
     def self.set(args : Lang::Arguments)
+      require_args(args, 3, "hashSet")
       if args.values.size < 3
         raise Exception.new("Runtime error: hashSet must have 3 arguments")
       end
@@ -214,28 +200,16 @@ module StdLib
     end
 
     def self.size(args : Lang::Arguments)
-      min_args(args, 1, "arrSize")
+      require_args(args, 1, "arrSize")
       arr = require_array(args.values[0])
       return Lang::ValNumber.new(:number, arr.size)
     end
 
     def self.get(args : Lang::Arguments)
-      if args.values.size < 2
-        raise Exception.new("Runtime error: arrGet must have 2 arguments")
-      end
-      arr = args.values[0]
-      index = args.values[1]
-      if arr.is_a?(Lang::ValArray) && index.is_a?(Lang::ValNumber)
-        arr_val = arr.value
-        index_val = index.value
-        if arr_val.is_a?(Array) && arr_val.is_a?(Float64)
-          return arr_val[index_val]
-        else
-          raise Exception.new("Runtime panic: Internal array value or number value is incorrect")
-        end
-      else
-        raise Exception.new("Runtime error: arrSize must take an array")
-      end
+      require_args(args, 2, "arrGet")
+      arr = require_array(args[0])
+      index = require_number(args[1]).to_i
+      arr[index]
     end
   end
 end

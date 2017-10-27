@@ -116,6 +116,10 @@ module Lang
         @values.push(context.value_of(arg))
       end
     end
+
+    def [](index)
+      @values[index]
+    end
   end
 
   class RoutRunner
