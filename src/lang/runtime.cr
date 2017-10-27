@@ -91,6 +91,22 @@ module Lang
     end
   end
 
+  class ValArray < Value
+    def initialize(type : Symbol)
+      @type = type
+      @value = [] of Value
+    end
+
+    def print
+      str = "["
+      arr_value = @value
+      if arr_value.is_a?(Hash(String, Value))
+        str += arr_value.join(", ")
+      end
+      str + "]"
+    end
+  end
+
   class Arguments
     property values : Array(Value)
 
@@ -322,7 +338,13 @@ module Lang
         if @terminated
           break
         end
-        evaluate(command)
+        begin
+          evaluate(command)
+        rescue err
+          puts err.message
+          puts "at " + command.inspect
+          raise Exception.new("Runtime error.")
+        end
       end
       @variables["_"]
     end

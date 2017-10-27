@@ -1,5 +1,56 @@
 module StdLib
 
+  def min_args(args : Lang::Arguments, min_count, name)
+    if args.values.size < min_count
+      raise Exception.new(name + " requires at minimum " + min_count.to_s + " arguments.")
+    end
+  end
+
+  def require_string(value : Lang::Value)
+    true_value = value.value
+    if value.is_a?(Lang::ValString) && true_value.is_a?(String)
+      return true_value
+    else
+      raise Exception.new("Argument mismatch: Expected string")
+    end
+  end
+
+  def require_number(value : Lang::Value)
+    true_value = value.value
+    if value.is_a?(Lang::ValNumber) && true_value.is_a?(Float64)
+      return true_value
+    else
+      raise Exception.new("Argument mismatch: Expected number.")
+    end
+  end
+
+  def require_bool(value : Lang::Value)
+    true_value = value.value
+    if value.is_a?(Lang::ValBool) && true_value.is_a?(Boolean)
+      return true_value
+    else
+      raise Exception.new("Argument mismatch: Expected bool.")
+    end
+  end
+
+  def require_hash(value : Lang::Value)
+    true_value = value.value
+    if value.is_a?(Lang::ValHash) && true_value.is_a?(Hash(String, Lang::Value))
+      return true_value
+    else
+      raise Exception.new("Argument mismatch: Expected hash.")
+    end
+  end
+
+  def require_array(value : Lang::Value)
+    true_value = value.value
+    if value.is_a?(Lang::ValArray) && true_value.is_a?(Array(Lang::Value))
+      return true_value
+    else
+      raise Exception.new("Argument mismatch: Expected array.")
+    end
+  end
+
   def self.resolve(command : String, args : Lang::Arguments)
     case command
     when "print"
@@ -18,6 +69,12 @@ module StdLib
       return HashLib.get(args)
     when "hashHas"
       return HashLib.has(args)
+    when "arr"
+      return ArrayLib.create(args)
+    when "arrGet"
+      return ArrayLib.get(args)
+    when "arrSize"
+      return ArrayLib.size(args)
     end
     raise Exception.new("Runtime error: No such command '" + command + "'.");
   end
@@ -146,6 +203,39 @@ module StdLib
         raise Exception.new("Runtime error: Incorrect argument values for hash.get")
       end
       raise Exception.new("Runtime error: Incorrect arguments for hash.get")
+    end
+  end
+
+  module ArrayLib
+    def self.create(args : Lang::Arguments)
+      arr = Lang::ValArray.new(:array)
+      arr.value = args.values
+      arr
+    end
+
+    def self.size(args : Lang::Arguments)
+      min_args(args, 1, "arrSize")
+      arr = require_array(args.values[0])
+      return Lang::ValNumber.new(:number, arr.size)
+    end
+
+    def self.get(args : Lang::Arguments)
+      if args.values.size < 2
+        raise Exception.new("Runtime error: arrGet must have 2 arguments")
+      end
+      arr = args.values[0]
+      index = args.values[1]
+      if arr.is_a?(Lang::ValArray) && index.is_a?(Lang::ValNumber)
+        arr_val = arr.value
+        index_val = index.value
+        if arr_val.is_a?(Array) && arr_val.is_a?(Float64)
+          return arr_val[index_val]
+        else
+          raise Exception.new("Runtime panic: Internal array value or number value is incorrect")
+        end
+      else
+        raise Exception.new("Runtime error: arrSize must take an array")
+      end
     end
   end
 end
