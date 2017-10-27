@@ -79,6 +79,11 @@ module Lang
       @value = {} of String => Value
     end
 
+    def initialize(type, value : Hash(String, Value))
+      @type = type
+      @value = value
+    end
+
     def print
       str = ""
       hash_value = @value
