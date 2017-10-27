@@ -75,6 +75,12 @@ module StdLib
       return ArrayLib.get(args)
     when "arrSize"
       return ArrayLib.size(args)
+    when "arrSet"
+      return ArrayLib.set(args)
+    when "arrPush"
+      return ArrayLib.push(args)
+    when "arrPop"
+      return ArrayLib.pop(args)
     end
     raise Exception.new("Runtime error: No such command '" + command + "'.");
   end
@@ -136,14 +142,14 @@ module StdLib
     end
 
     def self.get(args : Lang::Arguments)
-      require_args(2)
+      require_args(args, 2, "hashGet")
       hash = require_hash(args.values[0])
       key = require_string(args.values[1])
       return hash[key]
     end
 
     def self.has(args : Lang::Arguments)
-      require_args(2)
+      require_args(args, 2, "hashHas")
       hash = require_hash(args.values[0])
       key = require_string(args.values[1])
       if hash.has_key?(key)
@@ -172,6 +178,30 @@ module StdLib
       arr = require_array(args[0])
       index = require_number(args[1]).to_i
       arr[index]
+    end
+
+    def self.set(args : Lang::Arguments)
+      require_args(args, 3, "arrSet")
+      arr = require_array(args[0])
+      index = require_number(args[1]).to_i
+      val = args[2]
+      arr[index] = val
+      Lang::ValArray.new(:array, arr)
+    end
+
+    def self.push(args : Lang::Arguments)
+      require_args(args, 2, "arrPush")
+      arr = require_array(args[0])
+      val = args[1]
+      arr.push(val)
+      Lang::ValArray.new(:array, arr)
+    end
+
+    def self.pop(args : Lang::Arguments)
+      require_args(args, 1, "arrPop")
+      arr = require_array(args[0])
+      popped = arr.pop
+      popped
     end
   end
 end

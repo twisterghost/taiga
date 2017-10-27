@@ -28,7 +28,7 @@ module Lang
   class ValNumber < Value
     def value
       val = @value
-      if val.is_a?(Float64)
+      if val.is_a?(Number)
         return val.to_f64
       end
       raise Exception.new("Runtime error: Internal number rep isnt a number")
@@ -100,6 +100,11 @@ module Lang
     def initialize(type : Symbol)
       @type = type
       @value = [] of Value
+    end
+
+    def initialize(type : Symbol, value : Array(Value))
+      @type = type
+      @value = value
     end
 
     def print
@@ -342,6 +347,9 @@ module Lang
           @variables[@rout.arguments[i]] = arg
         end
       end
+
+      top_args = ValArray.new(:array, arguments)
+      @variables["ARGV"] = top_args
 
       @rout.commands.each do |command|
         if @terminated
