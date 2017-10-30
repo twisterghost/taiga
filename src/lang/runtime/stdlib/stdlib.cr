@@ -24,7 +24,8 @@ module StdLib
       "arrGet": ArrayLib.get,
       "arrSize": ArrayLib.size,
       "arrPush": ArrayLib.push,
-      "arrPop": ArrayLib.pop
+      "arrPop": ArrayLib.pop,
+      "cat": StringLib.cat
     })
     raise Exception.new("Runtime error: No such command '" + command + "'.");
   end
