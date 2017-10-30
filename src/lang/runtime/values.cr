@@ -35,7 +35,15 @@ module Lang
   class ValBool < Value
     def initialize(type : Symbol, value : VariableValue)
       @type = type
-      @value = value
+      if value.is_a?(Bool)
+        if value
+          @value = 1
+        else
+          @value = 0
+        end
+      else
+        @value = value
+      end
     end
 
     def initialize(type : Symbol, value : Bool)

@@ -12,6 +12,8 @@ module StdLib
     api({
       "print": print,
       "eq": eq,
+      "and": and,
+      "or": or,
       "add": Math.add,
       "sub": Math.sub,
       "hash": HashLib.create,
@@ -46,6 +48,22 @@ module StdLib
       end
     end
     return Lang::ValBool.new(:bool, is_eq)
+  end
+
+  def self.and(args : Lang::Arguments)
+    require_args(args, 2, "and")
+    a = require_bool(args[0])
+    b = require_bool(args[1])
+    res = a && b
+    Lang::ValBool.new(:bool, res)
+  end
+
+  def self.or(args : Lang::Arguments)
+    require_args(args, 2, "or")
+    a = require_bool(args[0])
+    b = require_bool(args[1])
+    res = a || b
+    Lang::ValBool.new(:bool, res)
   end
 
 end

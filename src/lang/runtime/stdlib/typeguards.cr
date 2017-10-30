@@ -25,7 +25,7 @@ module StdLib
 
   def require_bool(value : Lang::Value)
     true_value = value.value
-    if value.is_a?(Lang::ValBool) && true_value.is_a?(Boolean)
+    if value.is_a?(Lang::ValBool) && true_value.is_a?(Bool)
       return true_value
     else
       raise Exception.new("Argument mismatch: Expected bool.")
