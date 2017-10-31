@@ -80,8 +80,8 @@ module Lang
 
       while raw.size > 0
         raw_part = raw[0]
-        if raw_part[0] == '"'
-          if raw_part[-1] == '"'
+        if raw_part[0] == '"' && !parsing_string
+          if raw_part[-1] == '"' && raw_part.size > 1
             parts.push(raw.shift)
           else
             parsing_string = true

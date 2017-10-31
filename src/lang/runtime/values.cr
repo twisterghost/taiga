@@ -20,6 +20,10 @@ module Lang
       end
       raise Exception.new("Runtime error: Internal string rep isnt a string")
     end
+
+    def print
+      @value.to_s
+    end
   end
 
   class ValNumber < Value
@@ -107,7 +111,7 @@ module Lang
       @value = [] of Value
     end
 
-    def initialize(type : Symbol, value : Array(Value))
+    def initialize(type : Symbol, value : VariableValue)
       @type = type
       @value = value
     end
@@ -115,8 +119,8 @@ module Lang
     def print
       str = "["
       arr_value = @value
-      if arr_value.is_a?(Hash(String, Value))
-        str += arr_value.join(", ")
+      if arr_value.is_a?(Array(Value))
+        str += arr_value.map {|val| val.print}.join(", ")
       end
       str + "]"
     end
