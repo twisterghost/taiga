@@ -2,7 +2,7 @@
 
 # Taiga Lang
 
-Taiga is an experimental programming language that enforces code to be thought of as simply as possible.
+Taiga is an experimental programming language that forces code to be thought of as simply as possible.
 
 Taiga is functional in nature, with an iterative style syntax. In every expression, the variable `_` will contain the previously computed value, creating streams of values through lines.
 
