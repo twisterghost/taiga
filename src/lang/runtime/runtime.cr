@@ -28,6 +28,11 @@ module Lang
       @variables = {} of String => Value
       @variables["_"] = ValBool.new(:bool, 1)
       @context = context
+      context.routines.each do |key, rout|
+        command_var = ValRoutine.new(:routine, rout)
+        command_var.context = context
+        @variables[key] = command_var
+      end
       @lastif = false
       @terminated = false
     end
@@ -38,7 +43,9 @@ module Lang
       end
 
       if @context.routines.has_key?(name)
-        return ValCommand.new(:command, name)
+        rout = ValRoutine.new(:routine, @context.routines[name])
+        rout.context = @context
+        return rout
       end
 
       return nil
@@ -51,13 +58,7 @@ module Lang
 
       potential_command = parts[0]
       if potential_command.is_a?(Token)
-        check_command = value_of_dangerous(potential_command)
-        if check_command.nil?
-          command = Command.new(potential_command.name)
-        else
-          command = Command.new(check_command.value.to_s)
-        end
-
+        command = Command.new(potential_command.name)
         if parts.size > 1
           command.arguments = parts[1..-1]
         end
@@ -149,8 +150,18 @@ module Lang
         possible_command = get_var(run_command)
         if possible_command.nil?
           raise Exception.new("Runtime error: Cannot run nonexistent routine")
+        elsif possible_command.is_a?(ValRoutine)
+          command_value = possible_command.value
+          command_context = possible_command.context
+          if command_value.is_a?(Routine) && command_context.is_a?(Program)
+            runner = RoutRunner.new(command_value, command_context)
+            save_res(runner.run(arguments.values))
+            return
+          else
+            raise Exception.new("Runtime error: Invalid command value")
+          end
         else
-          run_command = possible_command.value.to_s
+          raise Exception.new("Runtime error: Cannot run non-routine")
         end
       end
 
@@ -174,14 +185,6 @@ module Lang
         else
           raise Exception.new("Runtime error: No such import '" + import_name + "'")
         end
-      end
-
-      # Check if the context has this command as a routine
-      if @context.routines.has_key?(run_command)
-        subrout = @context.routines[run_command]
-        runner = RoutRunner.new(subrout, @context)
-        save_res(runner.run(arguments.values))
-        return
       end
 
       save_res(StdLib.resolve(run_command, arguments))

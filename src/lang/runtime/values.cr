@@ -13,6 +13,16 @@ module Lang
     end
   end
 
+  class ValRoutine < Value
+    property context : Program
+
+    def initialize(type, value)
+      @type = type
+      @value = value
+      @context = Program.new(Routine.new(""))
+    end
+  end
+
   class ValString < Value
     def value
       if @value.is_a?(String)
@@ -73,12 +83,6 @@ module Lang
       else
         return "false"
       end
-    end
-  end
-
-  class ValCommand < Value
-    def value
-      @value.to_s
     end
   end
 

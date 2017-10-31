@@ -65,6 +65,10 @@ module Lang
       ret += @commands.map {|command| "  " + command.inspect}.join("\n")
       ret
     end
+
+    def to_s
+      inspect
+    end
   end
 
   class Command
