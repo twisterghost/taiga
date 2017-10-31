@@ -25,6 +25,7 @@ module StdLib
       "arrSize": ArrayLib.size,
       "arrPush": ArrayLib.push,
       "arrPop": ArrayLib.pop,
+      "arrShift": ArrayLib.shift,
       "cat": StringLib.cat,
       "split": StringLib.split,
       "join": StringLib.join,

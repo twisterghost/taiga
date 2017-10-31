@@ -40,6 +40,15 @@ module StdLib
       require_args(args, 1, "arrPop")
       arr = require_array(args[0])
       popped = arr.pop
+      args[0].value = arr
+      popped
+    end
+
+    def self.shift(args : Lang::Arguments)
+      require_args(args, 1, "arrShift")
+      arr = require_array(args[0])
+      popped = arr.shift
+      args[0].value = arr
       popped
     end
   end
