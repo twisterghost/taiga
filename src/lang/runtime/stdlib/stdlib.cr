@@ -16,6 +16,8 @@ module StdLib
       "or": or,
       "add": Math.add,
       "sub": Math.sub,
+      "mul": Math.mul,
+      "div": Math.div,
       "hash": HashLib.create,
       "hashSet": HashLib.set,
       "hashGet": HashLib.get,
@@ -39,7 +41,7 @@ module StdLib
       str += arg.print
     end
     puts str
-    return Lang::ValBool.new(:bool, 1)
+    args[0]
   end
 
   def self.eq(args : Lang::Arguments)

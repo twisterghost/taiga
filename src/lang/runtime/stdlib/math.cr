@@ -18,5 +18,25 @@ module StdLib
       end
       return Lang::ValNumber.new(:number, sum)
     end
+
+    def self.mul(args : Lang::Arguments)
+      require_args(args, 2, "mul")
+      sum = require_number(args[0])
+      args.values[1..-1].each do |arg|
+        val = require_number(arg)
+        sum *= val
+      end
+      return Lang::ValNumber.new(:number, sum)
+    end
+
+    def self.div(args : Lang::Arguments)
+      require_args(args, 2, "div")
+      sum = require_number(args[0])
+      args.values[1..-1].each do |arg|
+        val = require_number(arg)
+        sum /= val
+      end
+      return Lang::ValNumber.new(:number, sum)
+    end
   end
 end
