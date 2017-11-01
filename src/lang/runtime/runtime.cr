@@ -53,7 +53,7 @@ module Lang
 
     def evaluate_dynamic(parts : Array(Literal | Token))
       if parts.size == 0
-        raise Exception.new("Runtime error: Cannot execute nothing")
+        raise RuntimeError.new("Runtime error: Cannot execute nothing")
       end
 
       potential_command = parts[0]
@@ -83,7 +83,7 @@ module Lang
           save_res(value)
           return
         else
-          raise Exception.new("Runtime error: Invalid variable name")
+          raise RuntimeError.new("Runtime error: Invalid variable name")
         end
       end
 
@@ -98,7 +98,7 @@ module Lang
           end
           return
         else
-          raise Exception.new("Runtime error: Invalid variable name")
+          raise RuntimeError.new("Runtime error: Invalid variable name")
         end
       end
 
@@ -112,7 +112,7 @@ module Lang
           end
           return
         else
-          raise Exception.new("Runtime error: Cannot if on non-bool")
+          raise RuntimeError.new("Runtime error: Cannot if on non-bool")
         end
       end
 
@@ -125,7 +125,7 @@ module Lang
           end
           return
         else
-          raise Exception.new("Runtime error: Cannot if on non-bool")
+          raise RuntimeError.new("Runtime error: Cannot if on non-bool")
         end
       end
 
@@ -149,7 +149,7 @@ module Lang
       if var_exists(run_command)
         possible_command = get_var(run_command)
         if possible_command.nil?
-          raise Exception.new("Runtime error: Cannot run nonexistent routine")
+          raise RuntimeError.new("Runtime error: Cannot run nonexistent routine")
         elsif possible_command.is_a?(ValRoutine)
           command_value = possible_command.value
           command_context = possible_command.context
@@ -158,10 +158,10 @@ module Lang
             save_res(runner.run(arguments.values))
             return
           else
-            raise Exception.new("Runtime error: Invalid command value")
+            raise RuntimeError.new("Runtime error: Invalid command value")
           end
         else
-          raise Exception.new("Runtime error: Cannot run non-routine")
+          raise RuntimeError.new("Runtime error: Cannot run non-routine")
         end
       end
 
@@ -169,7 +169,7 @@ module Lang
       if !run_command.index('.').nil?
         parts = run_command.split('.')
         if parts.size > 2
-          raise Exception.new("Runtime error: Invalid import access")
+          raise RuntimeError.new("Runtime error: Invalid import access")
         end
         import_name = parts[0]
         import_rout = parts[1]
@@ -180,10 +180,10 @@ module Lang
             save_res(runner.run(arguments.values))
             return
           else
-            raise Exception.new("Runtime error: No such rout '" + import_rout + "' on '" + import_name)
+            raise RuntimeError.new("Runtime error: No such rout '" + import_rout + "' on '" + import_name)
           end
         else
-          raise Exception.new("Runtime error: No such import '" + import_name + "'")
+          raise RuntimeError.new("Runtime error: No such import '" + import_name + "'")
         end
       end
 
@@ -203,9 +203,9 @@ module Lang
       val = value_of_dangerous(var_or_val)
       if val.nil?
         if var_or_val.is_a?(Token)
-          raise Exception.new("Runtime error: No such variable '" + var_or_val.name + "'.")
+          raise RuntimeError.new("Runtime error: No such variable '" + var_or_val.name + "'.")
         else
-          raise Exception.new("Runtime error: No such value")
+          raise RuntimeError.new("Runtime error: No such value")
         end
       else
         return val
@@ -222,7 +222,7 @@ module Lang
         when :bool
           return ValBool.new(:bool, var_or_val.value.to_i)
         end
-        raise Exception.new("Runtime error: Unknown literal type")
+        raise RuntimeError.new("Runtime error: Unknown literal type")
       else
         return get_var(var_or_val.name)
       end
@@ -246,9 +246,13 @@ module Lang
         begin
           evaluate(command)
         rescue err
-          puts err.message
-          puts "at " + command.inspect
-          raise Exception.new("Runtime error.")
+          message = err.message
+          if message.is_a?(String)
+            message += "\nat " + command.inspect
+            raise Exception.new(message);
+          else
+            raise err
+          end
         end
       end
       @variables["_"]
