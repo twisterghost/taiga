@@ -1,20 +1,20 @@
 rout map inputArr func
   arr
-  map_sub inputArr func _
+  _map inputArr func _
   endrout
 
-rout map_sub inputArr func tempArr
+rout _map inputArr func tempArr
   arrSize inputArr
   eq _ 0
   if _ return tempArr
   arrShift inputArr
   func _
   arrPush tempArr _
-  map_sub inputArr func _
+  _map inputArr func _
   endrout
 
 rout reduce inputArr reducer collector
-  reduce_sub inputArr reducer collector 0
+  _reduce inputArr reducer collector 0
   endrout
 
 rout reduce_sub inputArr reducer collector index
@@ -27,6 +27,6 @@ rout reduce_sub inputArr reducer collector index
   let collector _
 
   add index 1
-  reduce_sub inputArr reducer collector _
+  _reduce inputArr reducer collector _
   endrout
 

@@ -5,10 +5,10 @@ rout values hash
   arr
   let workingValues _
 
-  _hashValues_helper hash keys workingValues
+  _values hash keys workingValues
   endrout
 
-rout _hashValues_helper hash keys values
+rout _values hash keys values
   arrSize keys
   eq _ 0
   if _ return values
@@ -16,6 +16,6 @@ rout _hashValues_helper hash keys values
   arrShift keys
   hashGet hash _
   arrPush values _
-  _hashValues_helper hash keys values
+  _values hash keys values
   endrout
 
