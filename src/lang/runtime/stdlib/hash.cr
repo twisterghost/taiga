@@ -30,5 +30,13 @@ module StdLib
         return Lang::ValBool.new(:bool, 0)
       end
     end
+
+    def self.keys(args : Lang::Arguments)
+      require_args(args, 1, "hashKeys")
+      hash = require_hash(args.values[0])
+      keys_arr = [] of Lang::Value
+      hash.keys.each { |key| keys_arr.push(Lang::ValString.new(:string, key)) }
+      Lang::ValArray.new(:array, keys_arr)
+    end
   end
 end

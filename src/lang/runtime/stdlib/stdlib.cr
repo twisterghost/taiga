@@ -22,6 +22,7 @@ module StdLib
       "hashSet": HashLib.set,
       "hashGet": HashLib.get,
       "hashHas": HashLib.has,
+      "hashKeys": HashLib.keys,
       "arr": ArrayLib.create,
       "arrGet": ArrayLib.get,
       "arrSize": ArrayLib.size,
