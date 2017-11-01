@@ -1,0 +1,21 @@
+rout values hash
+  hashKeys hash
+  let keys _
+
+  arr
+  let workingValues _
+
+  _hashValues_helper hash keys workingValues
+  endrout
+
+rout _hashValues_helper hash keys values
+  arrSize keys
+  eq _ 0
+  if _ return values
+
+  arrShift keys
+  hashGet hash _
+  arrPush values _
+  _hashValues_helper hash keys values
+  endrout
+

@@ -1,0 +1,32 @@
+rout map inputArr func
+  arr
+  map_sub inputArr func _
+  endrout
+
+rout map_sub inputArr func tempArr
+  arrSize inputArr
+  eq _ 0
+  if _ return tempArr
+  arrShift inputArr
+  func _
+  arrPush tempArr _
+  map_sub inputArr func _
+  endrout
+
+rout reduce inputArr reducer collector
+  reduce_sub inputArr reducer collector 0
+  endrout
+
+rout reduce_sub inputArr reducer collector index
+  arrSize inputArr
+  eq _ index
+  if _ return collector
+
+  arrGet inputArr index
+  reducer _ collector
+  let collector _
+
+  add index 1
+  reduce_sub inputArr reducer collector _
+  endrout
+

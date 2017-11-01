@@ -174,7 +174,7 @@ module Lang
         import_name = parts[0]
         import_rout = parts[1]
         if @context.imports.has_key?(import_name)
-          if @context.imports[import_name].routines.has_key?(import_rout)
+          if import_rout[0] != '_' && @context.imports[import_name].routines.has_key?(import_rout)
             subrout = @context.imports[import_name].routines[import_rout]
             runner = RoutRunner.new(subrout, @context.imports[import_name])
             save_res(runner.run(arguments.values))
