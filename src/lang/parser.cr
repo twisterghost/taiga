@@ -18,6 +18,10 @@ module Lang
     def inspect
       @type.to_s + ":" + @value.to_s
     end
+
+    def getCompiledValue
+      @value.to_s
+    end
   end
 
   class Token
@@ -29,6 +33,10 @@ module Lang
 
     def inspect
       "token:" + @name
+    end
+
+    def getCompiledValue
+      @name
     end
   end
 
@@ -47,6 +55,10 @@ module Lang
       ret = @routines.values.map {|routine| routine.inspect}.join("\n\n")
       ret
     end
+
+    def compile
+      @routines.values.map {|routine| routine.compile}.join("\n\n")
+    end
   end
 
   class Routine
@@ -64,6 +76,16 @@ module Lang
       ret = "ROUT " + @name + ": " + @arguments.join(", ") + "\n"
       ret += @commands.map {|command| "  " + command.inspect}.join("\n")
       ret
+    end
+
+    def compile
+      if @commands.size != 0
+        arg_str = @arguments.join(", ")
+        func_name = @name
+        ret = "const #{func_name} = (#{arg_str}) => {\nlet __taiga_retval__;\n"
+        ret += @commands.map {|command| command.compile}.join("\n")
+        ret += "\nreturn __taiga_retval__;\n};"
+      end
     end
 
     def to_s
@@ -93,6 +115,37 @@ module Lang
       ret = @command + " "
       ret += @arguments.map {|arg| arg.inspect}.join(" ")
       ret
+    end
+
+    def compile_let
+      ret = "let "
+      ret += @arguments[0].getCompiledValue + " = " + @arguments[1].getCompiledValue + ";"
+    end
+
+    def compile
+      command_name = @command
+      if (command_name == "let")
+        return self.compile_let
+      end
+
+      if command_name == "if"
+        command_name = "taiga_if"
+      end
+      ret = "__taiga_retval__ = " + command_name + "("
+
+
+      ret += @arguments.map {|arg|
+        if arg.is_a?(Token)
+          if arg.name == "_"
+            "__taiga_retval__"
+          else
+            arg.name
+          end
+        elsif arg.is_a?(Literal)
+          arg.value
+        end
+      }.join(", ")
+      ret += ");"
     end
   end
 

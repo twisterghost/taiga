@@ -11,14 +11,8 @@ module Lang
     parser = Parser.new(ast, file_path)
     program = parser.parse
 
-    main_runner = RoutRunner.new(program.main, program)
-    runner_args = [] of Value
-
-    ARGV[1..-1].each do |arg|
-      string_arg = ValString.new(:string, arg)
-      runner_args.push(string_arg)
-    end
-    main_runner.run(runner_args)
+    compiler = Compiler.new
+    compiler.compile(program)
   rescue ex
     message = ex.message
     if message.nil?
