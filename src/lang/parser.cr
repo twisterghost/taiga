@@ -36,7 +36,11 @@ module Lang
     end
 
     def getCompiledValue
-      @name
+      if @name == "_"
+        "__taiga_retval__"
+      else
+        @name
+      end
     end
   end
 
@@ -57,7 +61,11 @@ module Lang
     end
 
     def compile
-      @routines.values.map {|routine| routine.compile}.join("\n\n")
+      ret = @routines.values.map {|routine| routine.compile}.join("\n\n")
+      if @routines["main"].commands.size > 0
+        ret += "\nmain();"
+      end
+      ret
     end
   end
 
@@ -122,6 +130,12 @@ module Lang
       ret += @arguments[0].getCompiledValue + " = " + @arguments[1].getCompiledValue + ";"
     end
 
+    def compile_if
+      ret = "if (#{@arguments[0].getCompiledValue}) {"
+      ret += "return #{@arguments[2].getCompiledValue}"
+      ret += "}"
+    end
+
     def compile
       command_name = @command
       if (command_name == "let")
@@ -129,7 +143,7 @@ module Lang
       end
 
       if command_name == "if"
-        command_name = "taiga_if"
+        return self.compile_if
       end
       ret = "__taiga_retval__ = " + command_name + "("
 

@@ -17,17 +17,17 @@ rout reduce inputArr reducer collector
   _reduce inputArr reducer collector 0
   endrout
 
-rout reduce_sub inputArr reducer collector index
+rout _reduce inputArr reducer collector index
   arrSize inputArr
   eq _ index
   if _ return collector
 
   arrGet inputArr index
   reducer _ collector
-  let collector _
+  let reduced _
 
   add index 1
-  _reduce inputArr reducer collector _
+  _reduce inputArr reducer reduced _
   endrout
 
 rout double input
@@ -37,4 +37,5 @@ rout double input
 arr 1 2 3
 let data _
 map data double
+reduce _ add 0
 print _
