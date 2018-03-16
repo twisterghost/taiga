@@ -20,7 +20,11 @@ module Lang
     end
 
     def getCompiledValue
-      @value.to_s
+      if @type == :string
+        "\"#{@value.to_s}\""
+      else
+        @value.to_s
+      end
     end
   end
 
@@ -156,7 +160,7 @@ module Lang
             arg.name
           end
         elsif arg.is_a?(Literal)
-          arg.value
+          arg.getCompiledValue
         end
       }.join(", ")
       ret += ");"
