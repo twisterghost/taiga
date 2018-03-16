@@ -51,16 +51,17 @@ module Lang
   class Program
     property routines : Hash(String, Routine)
     property main : Routine
-    property imports : Hash(String, Program)
+    property imports : Hash(String, String)
 
     def initialize(main : Routine)
       @main = main
       @routines = {"main" => main}
-      @imports = {} of String => Program
+      @imports = {} of String => String
     end
 
     def inspect
-      ret = @routines.values.map {|routine| routine.inspect}.join("\n\n")
+      ret = @imports.map {|token, file| puts token + " -> " + file}.join("\n")
+      ret += @routines.values.map {|routine| routine.inspect}.join("\n\n")
       ret
     end
 
@@ -124,7 +125,7 @@ module Lang
     end
 
     def inspect
-      ret = @command + " "
+      ret = "cmd:#{@command} "
       ret += @arguments.map {|arg| arg.inspect}.join(" ")
       ret
     end
@@ -185,17 +186,22 @@ module Lang
       import_token = command.arguments[1]
       if import_filename.is_a?(Literal) && import_token.is_a?(Token)
         import_path = resolve_path(import_filename.value.to_s)
-        content = File.read(import_path)
-
-        # Lex, parse and save import
-        import_lexer = Lexer.new(content, import_path)
-        import_ast = import_lexer.lex
-        import_parser = Parser.new(import_ast, import_path)
-        imported_program = import_parser.parse
-        @program.imports[import_token.name.to_s] = imported_program
+        @program.imports[import_token.name.to_s] = import_path
       else
         raise Exception.new("Parsing error: Import must be string and token")
       end
+    end
+
+    def is_rout?(rout_name : String)
+      @program.routines.keys.includes?(rout_name)
+    end
+
+    def is_valid_token?(token : String, lets : Array(String), current_routine)
+      token == "_" ||
+      token == "return" ||
+      is_rout?(token) ||
+      lets.includes?(token) ||
+      current_routine.@arguments.includes?(token)
     end
 
     def parse
@@ -204,6 +210,8 @@ module Lang
       current_routine = @main
       is_new_routine = false
       is_import = false
+      is_let = false
+      current_lets = [] of String
 
       while i < @ast.nodes.size
         node = @ast.nodes[i]
@@ -227,8 +235,11 @@ module Lang
           when "endrout"
             @program.routines[current_routine.name] = current_routine
             current_routine = @main
+            current_lets = [] of String
           when "import"
             is_import = true
+          when "let"
+            is_let = true
           else
             current_command.command = node.value.to_s
           end
@@ -240,8 +251,16 @@ module Lang
         when :token
           if is_new_routine
             current_routine.arguments.push(node.value.to_s)
-          else
+          elsif is_let
+            current_lets.push(node.value.to_s)
             current_command.add_argument(Token.new(node.value.to_s))
+          else
+            token_value = node.value.to_s
+            if is_valid_token?(token_value, current_lets, current_routine) || is_import
+              current_command.add_argument(Token.new(token_value))
+            else
+              raise Exception.new("Parsing error: Unexpected undefined token #{token_value}")
+            end
           end
         when :newline, :eof
           if is_new_routine
