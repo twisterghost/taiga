@@ -64,14 +64,6 @@ module Lang
       ret += @routines.values.map {|routine| routine.inspect}.join("\n\n")
       ret
     end
-
-    def compile
-      ret = @routines.values.map {|routine| routine.compile}.join("\n\n")
-      if @routines["main"].commands.size > 0
-        ret += "\nmain();"
-      end
-      ret
-    end
   end
 
   class Routine
@@ -89,16 +81,6 @@ module Lang
       ret = "ROUT " + @name + ": " + @arguments.join(", ") + "\n"
       ret += @commands.map {|command| "  " + command.inspect}.join("\n")
       ret
-    end
-
-    def compile
-      if @commands.size != 0
-        arg_str = @arguments.join(", ")
-        func_name = @name
-        ret = "const #{func_name} = (#{arg_str}) => {\nlet __taiga_retval__;\n"
-        ret += @commands.map {|command| command.compile}.join("\n")
-        ret += "\nreturn __taiga_retval__;\n};"
-      end
     end
 
     def to_s
@@ -240,6 +222,7 @@ module Lang
             is_import = true
           when "let"
             is_let = true
+            current_command.command = node.value.to_s
           else
             current_command.command = node.value.to_s
           end

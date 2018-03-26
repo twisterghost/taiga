@@ -11,9 +11,9 @@ module Lang
     parser = Parser.new(ast, file_path)
     program = parser.parse
 
-    puts program.inspect
+    #puts program.inspect
     compiler = Compiler.new
-    #compiler.compile(program)
+    compiler.compile(program)
   rescue ex
     message = ex.message
     if message.nil?

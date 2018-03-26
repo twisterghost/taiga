@@ -1,5 +1,3 @@
-import "./tailib/arrayUtils.tai" arrayUtils
-
 rout map inputArr func
   arr
   _map inputArr func _
